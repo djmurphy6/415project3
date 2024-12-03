@@ -1,13 +1,17 @@
-CC = gcc
-CFLAGS = -Wall -g
-DEPS = bank.h
-OBJ = main.o bank.o
+all : bank
+	
+	
+bank: bank.o string_parser.o
+	gcc -g -o bank bank.o string_parser.o
+	
+bank.o: bank.c
+	gcc -g -c bank.c
+	
+string_parser.o: string_parser.c string_parser.h
+	gcc -g -c string_parser.c
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-bank: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-
+account.o: account.c account.h
+	gcc -g -c account.c
+	
 clean:
-	rm -f *.o bank
+	rm -f core *.o bank
