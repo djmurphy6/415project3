@@ -160,7 +160,7 @@ int main(int argc, char const *argv[]){
                 else if(strcmp(tokens.command_list[0], "T") == 0){
                     // TRANSFER - has 4 tokens, T src_account password dest_account transfer_amount
                     tCt++;
-
+                    txn.target_acc = malloc(sizeof(account));
                     strncpy(txn.target_acc->account_number, tokens.command_list[3], 16);
                     txn.target_acc->account_number[16] = '\0'; // Null-terminate
 
@@ -172,6 +172,7 @@ int main(int argc, char const *argv[]){
                     }
                     txn.target_acc = found_account;
                     txn.amount = atof(tokens.command_list[4]);
+                    //free(txn.target_acc);
                 }
                 else if(strcmp(tokens.command_list[0], "W") == 0){
                     // WITHDRAW - has 3 tokens, W account_num password withdraw_amount
@@ -188,6 +189,7 @@ int main(int argc, char const *argv[]){
                 // process the transaction
                 //printf("Processing transaction\n");
                 process_transaction(txn);
+                
             }
 
             free_command_line(&tokens);
@@ -209,6 +211,7 @@ int main(int argc, char const *argv[]){
         free (line_buf);
         printf("End of file\nBye Bye\n");
         free(accounts);
+        
 
         // Restore stdout back to the console
         /**
