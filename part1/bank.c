@@ -143,9 +143,9 @@ int main(int argc, char const *argv[]){
             // find account associated with the account number
             account* acc = find_account(accounts, numAcc, account_number);
 
-            // check if password matches
-            if(strcmp(acc -> password, password) != 0){
-                //printf("Invalid password for account %s\n", account_number);
+            // check if account exists and password matches
+            if (acc == NULL || strcmp(acc->password, password) != 0) {
+                //printf("Invalid account or password for account %s\n", account_number);
                 invalid++;
                 // skip to next line
                 continue;
