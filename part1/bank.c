@@ -127,13 +127,14 @@ int main(int argc, char const *argv[]){
         int invalid=0;
 
         while(getline(&line_buf, &len, inFPtr) != -1){
+            //memory leak here
             large_token_buffer = str_filler(line_buf, "\n");
 
             //debug code
             //printf("Large Token Buffer: %s\n", large_token_buffer.command_list[0]);
 
             transaction txn;
-
+            //memory leak here
             command_line tokens = str_filler(large_token_buffer.command_list[0], " ");
 
             char *account_number = tokens.command_list[1];
@@ -160,19 +161,14 @@ int main(int argc, char const *argv[]){
                 else if(strcmp(tokens.command_list[0], "T") == 0){
                     // TRANSFER - has 4 tokens, T src_account password dest_account transfer_amount
                     tCt++;
-                    txn.target_acc = malloc(sizeof(account));
-                    strncpy(txn.target_acc->account_number, tokens.command_list[3], 16);
-                    txn.target_acc->account_number[16] = '\0'; // Null-terminate
 
-                    //find the target account
-                    account *found_account = find_account(accounts, numAcc, txn.target_acc->account_number);
+                    account *found_account = find_account(accounts, numAcc, tokens.command_list[3]);
                     if (found_account == NULL) {
                         //printf("Error: Target account not found\n");
                         continue;
                     }
                     txn.target_acc = found_account;
                     txn.amount = atof(tokens.command_list[4]);
-                    //free(txn.target_acc);
                 }
                 else if(strcmp(tokens.command_list[0], "W") == 0){
                     // WITHDRAW - has 3 tokens, W account_num password withdraw_amount
@@ -199,7 +195,6 @@ int main(int argc, char const *argv[]){
 
         //debug code
         /**
-        printf("Deposit Count: %d\n", dCt);
         printf("Transfer Count: %d\n", tCt);
         printf("Withdraw Count: %d\n", wCt);
         printf("Check Balance Count: %d\n", cCt);
