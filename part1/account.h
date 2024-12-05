@@ -1,6 +1,7 @@
 #ifndef ACCOUNT_H_
 #define ACCOUNT_H_
 #include <pthread.h>
+#include "string_parser.h"
 
 typedef struct
 {
@@ -16,11 +17,23 @@ typedef struct
     pthread_mutex_t ac_lock;
 }account;
 
-void* process_transaction (void* arg);
+typedef struct 
+{
+    account acc;
+    char tType;
+    double amount;
+    account target_acc;
+
+}transaction;
+
+
+int process_transaction (transaction info);
 // function will be run by a worker thread to handle the transaction requests assigned to them
 
 void* update_balance (void* arg);
 //update each accounts balance based on their reward rate and transaction tracker
+
+account* find_account(account* accounts, int numAcc, const char* account_number);
 
 
 #endif /* ACCOUNT_H_ */

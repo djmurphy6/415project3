@@ -5,6 +5,7 @@
 #include "account.h"
 #include "string_parser.h"
 
+
 int main(int argc, char const *argv[]){
     if(argc == 2){ //checking for command line argument && (strcmp(argv[1], "f") == 0)
         //opening file to read
@@ -34,9 +35,6 @@ int main(int argc, char const *argv[]){
             return 1;
         }
 
-        command_line large_token_buffer;
-        command_line small_token_buffer;
-
         int numAcc = 0;
         int line_num = 0;
         // Read the first line to get the number of accounts
@@ -50,12 +48,14 @@ int main(int argc, char const *argv[]){
             return 1;
         }
 
+        command_line large_token_buffer;
+
         account accounts[numAcc];
 
         for (int i = 0; i < numAcc; i++) {
             // Skip the index line (line 1 for each account)
             getline(&line_buf, &len, inFPtr);
-            printf("Account %d index line: %s\n", i + 1, line_buf);
+            printf("Account %d index line: %s\n", i, line_buf);
 
             for (int j = 0; j < 4; j++) {
                 getline(&line_buf, &len, inFPtr);
@@ -66,40 +66,113 @@ int main(int argc, char const *argv[]){
                     // Account number
                     strncpy(accounts[i].account_number, large_token_buffer.command_list[0], 16);
                     accounts[i].account_number[16] = '\0'; // Null-terminate
-                    printf("Account %d - Account Number: %s\n", i + 1, accounts[i].account_number);
+                    
+                    //printf("Account %d - Account Number: %s\n", i + 1, accounts[i].account_number);
                 } else if (j == 1) {
                     // Password
                     strncpy(accounts[i].password, large_token_buffer.command_list[0], 8);
                     accounts[i].password[8] = '\0'; // Null-terminate
-                    printf("Account %d - Password: %s\n", i + 1, accounts[i].password);
+                    
+                    //printf("Account %d - Password: %s\n", i + 1, accounts[i].password);
                 } else if (j == 2) {
                     // Balance
                     accounts[i].balance = atof(large_token_buffer.command_list[0]); // Convert to double
-                    printf("Account %d - Balance: %.2f\n", i + 1, accounts[i].balance);
+                    
+                    //printf("Account %d - Balance: %.2f\n", i + 1, accounts[i].balance);
                 } else if (j == 3) {
                     // Reward rate
                     accounts[i].reward_rate = atof(large_token_buffer.command_list[0]); // Convert to double
-                    printf("Account %d - Reward Rate: %.3f\n", i + 1, accounts[i].reward_rate);
+                    
+                    //printf("Account %d - Reward Rate: %.3f\n", i + 1, accounts[i].reward_rate);
                 }
 
                 line_num++;
                 // Free memory for the token buffer
                 free_command_line(&large_token_buffer);
             }
-            printf("\nBreak!\n\n");
+            // Create the filename for the output file
+            char filename[20];
+            snprintf(filename, sizeof(filename), "account_%d.txt", i);
+            printf("Account %d - Output file: %s\n", i, filename);
+
+            //accounts[i].out_file = filename;
+
+            //fprintf(accounts[i].out_file, "account Number: %s\nCurrent Savings Balance %d", accounts[i].account_number, accounts[i].balance);
+            
         }
-        printf("Line Num: %d\n", line_num);
 
-        printf("Printing all account details for verification:\n");
-        for (int i = 0; i < numAcc; i++) {
-            printf("Account %d:\n", i + 1);
-            printf("  Account Number: %s\n", accounts[i].account_number);
-            printf("  Password: %s\n", accounts[i].password);
-            printf("  Balance: %.2f\n", accounts[i].balance);
-            printf("  Reward Rate: %.3f\n", accounts[i].reward_rate);
-            printf("-------------------------\n");
-}
+        int dCt = 0;
+        int tCt = 0;
+        int wCt = 0;
+        int cCt = 0;
+        int invalid=0;
 
+        while(getline(&line_buf, &len, inFPtr) != -1){
+            large_token_buffer = str_filler(line_buf, "\n");
+
+            //debug code
+            //printf("Large Token Buffer: %s\n", large_token_buffer.command_list[0]);
+
+            transaction txn;
+
+            command_line tokens = str_filler(large_token_buffer.command_list[0], " ");
+
+            char *account_number = tokens.command_list[1];
+            char *password = tokens.command_list[2];
+
+            // find account associated with the account number
+            account acc = *find_account(accounts, numAcc, account_number);
+
+            // check if password matches
+            if(strcmp(acc.password, password) != 0){
+                printf("Invalid password for account %s\n", account_number);
+                invalid++;
+                // skip to next line
+                continue;
+            } else {
+                txn.acc = acc;
+                txn.tType = tokens.command_list[0][0];
+
+                if(strcmp(tokens.command_list[0], "D") == 0){
+                    // DEPOSIT - has 3 tokens, D account_num password amount
+                    dCt++;
+                    txn.amount = atof(tokens.command_list[3]);
+                }
+                else if(strcmp(tokens.command_list[0], "T") == 0){
+                    // TRANSFER - has 4 tokens, T src_account password dest_account transfer_amount
+                    tCt++;
+
+                    txn.target_acc = *find_account(accounts, numAcc, txn.target_acc.account_number);
+                    txn.amount = atof(tokens.command_list[4]);
+                }
+                else if(strcmp(tokens.command_list[0], "W") == 0){
+                    // WITHDRAW - has 3 tokens, W account_num password withdraw_amount
+                    wCt++;
+                    txn.amount = atof(tokens.command_list[3]);      
+                }
+                else if(strcmp(tokens.command_list[0], "C") == 0){
+                    // CHECK BALANCE - has 2 tokens, C account_num password
+                    cCt++;
+                    //printf("Account %s balance: %.2f\n", account_number, acc.balance);
+                    
+                }
+
+                // process the transaction
+                process_transaction(txn);
+            }
+
+            free_command_line(&tokens);
+            free_command_line(&large_token_buffer);
+        }
+
+        //debug code
+        /**
+        printf("Deposit Count: %d\n", dCt);
+        printf("Transfer Count: %d\n", tCt);
+        printf("Withdraw Count: %d\n", wCt);
+        printf("Check Balance Count: %d\n", cCt);
+        printf("Invalid Count: %d\n", invalid);
+        */
 
         fclose(inFPtr);
         //free line buffer
