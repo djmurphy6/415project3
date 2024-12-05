@@ -152,6 +152,8 @@ int main(int argc, char const *argv[]){
             } else {
                 txn.acc = acc;
                 txn.tType = tokens.command_list[0][0];
+                txn.amount = 0;
+                txn.target_acc = NULL;
 
                 if(strcmp(tokens.command_list[0], "D") == 0){
                     // DEPOSIT - has 3 tokens, D account_num password amount
