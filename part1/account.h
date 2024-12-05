@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include "string_parser.h"
 
+extern int numAcc; // Declare the numAcc variable as an external variable
+
 typedef struct
 {
 	char account_number[17];
@@ -17,6 +19,8 @@ typedef struct
     pthread_mutex_t ac_lock;
 }account;
 
+extern account* accounts; // Declare the accounts array as an external variable
+
 typedef struct 
 {
     account acc;
@@ -30,7 +34,7 @@ typedef struct
 int process_transaction (transaction info);
 // function will be run by a worker thread to handle the transaction requests assigned to them
 
-void* update_balance (void* arg);
+int update_balance ();
 //update each accounts balance based on their reward rate and transaction tracker
 
 account* find_account(account* accounts, int numAcc, const char* account_number);

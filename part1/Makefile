@@ -15,3 +15,4 @@ account.o: account.c account.h
 	
 clean:
 	rm -f core *.o bank
+	rm -f account_[0-9].txt

@@ -5,6 +5,9 @@
 #include "account.h"
 #include "string_parser.h"
 
+int numAcc = 0;
+account* accounts = NULL;
+
 
 int main(int argc, char const *argv[]){
     if(argc == 2){ //checking for command line argument && (strcmp(argv[1], "f") == 0)
@@ -35,8 +38,8 @@ int main(int argc, char const *argv[]){
             return 1;
         }
 
-        int numAcc = 0;
         int line_num = 0;
+
         // Read the first line to get the number of accounts
         if (getline(&line_buf, &len, inFPtr) != -1) {
             numAcc = atoi(line_buf); // Convert the first line to an integer
@@ -55,7 +58,7 @@ int main(int argc, char const *argv[]){
         for (int i = 0; i < numAcc; i++) {
             // Skip the index line (line 1 for each account)
             getline(&line_buf, &len, inFPtr);
-            printf("Account %d index line: %s\n", i, line_buf);
+            // printf("Account %d index line: %s", i, line_buf);
 
             for (int j = 0; j < 4; j++) {
                 getline(&line_buf, &len, inFPtr);
@@ -93,11 +96,21 @@ int main(int argc, char const *argv[]){
             // Create the filename for the output file
             char filename[20];
             snprintf(filename, sizeof(filename), "account_%d.txt", i);
-            printf("Account %d - Output file: %s\n", i, filename);
 
-            //accounts[i].out_file = filename;
+            // Copy the filename to the account struct
+            strcpy(accounts[i].out_file, filename);
 
-            //fprintf(accounts[i].out_file, "account Number: %s\nCurrent Savings Balance %d", accounts[i].account_number, accounts[i].balance);
+            // Open file for writing
+            FILE *outFPtr = fopen(accounts[i].out_file, "w");
+            if (outFPtr == NULL) {
+                printf("Error opening output file for account %d\n", i);
+                fclose(inFPtr);
+                free(line_buf);
+                return 1;
+            }
+
+            fprintf(outFPtr, "account: %d\nCurrent Savings Balance %.2f\n", i, accounts[i].balance);
+            fclose(outFPtr);
             
         }
 
@@ -125,7 +138,7 @@ int main(int argc, char const *argv[]){
 
             // check if password matches
             if(strcmp(acc.password, password) != 0){
-                printf("Invalid password for account %s\n", account_number);
+                //printf("Invalid password for account %s\n", account_number);
                 invalid++;
                 // skip to next line
                 continue;
@@ -142,7 +155,16 @@ int main(int argc, char const *argv[]){
                     // TRANSFER - has 4 tokens, T src_account password dest_account transfer_amount
                     tCt++;
 
-                    txn.target_acc = *find_account(accounts, numAcc, txn.target_acc.account_number);
+                    strncpy(txn.target_acc.account_number, tokens.command_list[3], 16);
+                    txn.target_acc.account_number[16] = '\0'; // Null-terminate
+
+                    //find the target account
+                    account *found_account = find_account(accounts, numAcc, txn.target_acc.account_number);
+                    if (found_account == NULL) {
+                        //printf("Error: Target account not found\n");
+                        continue;
+                    }
+                    txn.target_acc = *found_account;
                     txn.amount = atof(tokens.command_list[4]);
                 }
                 else if(strcmp(tokens.command_list[0], "W") == 0){
@@ -158,12 +180,14 @@ int main(int argc, char const *argv[]){
                 }
 
                 // process the transaction
+                //printf("Processing transaction\n");
                 process_transaction(txn);
             }
 
             free_command_line(&tokens);
             free_command_line(&large_token_buffer);
         }
+        update_balance();
 
         //debug code
         /**
