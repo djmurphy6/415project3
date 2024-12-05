@@ -147,6 +147,8 @@ int main(int argc, char const *argv[]){
             if (acc == NULL || strcmp(acc->password, password) != 0) {
                 //printf("Invalid account or password for account %s\n", account_number);
                 invalid++;
+                free_command_line(&tokens);
+                free_command_line(&large_token_buffer);
                 // skip to next line
                 continue;
             } else {
