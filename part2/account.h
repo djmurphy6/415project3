@@ -4,6 +4,7 @@
 #include "string_parser.h"
 
 extern int numAcc; // Declare the numAcc variable as an external variable
+#define MAX_QUEUE_SIZE 1000
 
 typedef struct
 {
@@ -52,6 +53,8 @@ void enqueue_transaction(transaction txn);
 transaction dequeue_transaction();
 
 void* worker_thread(void* arg);
+
+void* bank_thread(void* arg);
 
 
 #endif /* ACCOUNT_H_ */

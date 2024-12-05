@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "account.h"
 #include "string_parser.h"
 
@@ -18,19 +19,23 @@ account* find_account(account* accounts, int numAcc, const char* account_number)
 void enqueue_transaction(transaction txn) {
     pthread_mutex_lock(&queue_lock);
 
-    // Add transaction to the queue
-    transaction_queue = realloc(transaction_queue, (queue_size + 1) * sizeof(transaction));
-    transaction_queue[queue_size++] = txn;
+    // Add transaction to queue
+    if (queue_size < MAX_QUEUE_SIZE) {
+        transaction_queue[queue_size] = txn;
+        queue_size++;
+        pthread_cond_signal(&queue_cond); // Signal workers
+    } else {
+        // Handle queue overflow if necessary
+        fprintf(stderr, "Transaction queue overflow\n");
+    }
 
-    // Signal a worker thread
-    pthread_cond_signal(&queue_cond);
     pthread_mutex_unlock(&queue_lock);
 }
 
 transaction dequeue_transaction() {
     pthread_mutex_lock(&queue_lock);
 
-    // Wait until there's a transaction in the queue
+    // Wait until there's a transaction in the queue or shutdown is signaled
     while (queue_size == 0 && !shutdown) {
         pthread_cond_wait(&queue_cond, &queue_lock);
     }
@@ -59,6 +64,23 @@ void* worker_thread(void* arg) {
         pthread_mutex_lock(&queue_lock);
         transactions_processed++;
         pthread_mutex_unlock(&queue_lock);
+
+        // Check for shutdown signal again after processing
+        if (shutdown) break;
+    }
+    return NULL;
+}
+
+void* bank_thread(void* arg) {
+    while (1) {
+        pthread_mutex_lock(&queue_lock);
+        if (shutdown) {
+            pthread_mutex_unlock(&queue_lock);
+            break;
+        }
+        pthread_mutex_unlock(&queue_lock);
+        update_balance(NULL);
+        sleep(1);
     }
     return NULL;
 }
