@@ -186,7 +186,11 @@ int main(int argc, char const *argv[]){
 
                 // process the transaction
                 //printf("Processing transaction\n");
-                process_transaction(txn);
+                if (txn.acc != NULL) {
+                    process_transaction(txn);
+                } else {
+                    //printf("Error processing transaction\n");
+                }
                 
             }
 
