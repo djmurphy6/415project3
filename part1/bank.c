@@ -133,7 +133,7 @@ int main(int argc, char const *argv[]){
             //debug code
             //printf("Large Token Buffer: %s\n", large_token_buffer.command_list[0]);
 
-            transaction txn;
+            transaction txn = {0};
             //memory leak here
             command_line tokens = str_filler(large_token_buffer.command_list[0], " ");
 
