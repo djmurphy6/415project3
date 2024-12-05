@@ -34,7 +34,7 @@ typedef struct
 int process_transaction (transaction info);
 // function will be run by a worker thread to handle the transaction requests assigned to them
 
-int update_balance ();
+void* update_balance(void* arg);
 //update each accounts balance based on their reward rate and transaction tracker
 
 account* find_account(account* accounts, int numAcc, const char* account_number);

@@ -179,7 +179,7 @@ int main(int argc, char const *argv[]){
                     // CHECK BALANCE - has 2 tokens, C account_num password
                     cCt++;
                     //printf("Account %s balance: %.2f\n", account_number, acc.balance);
-                    
+
                 }
 
                 // process the transaction
@@ -191,7 +191,25 @@ int main(int argc, char const *argv[]){
             free_command_line(&tokens);
             free_command_line(&large_token_buffer);
         }
-        update_balance();
+        update_balance(NULL);
+
+        // Open the output.txt file for writing
+        FILE *summaryFPtr = fopen("output.txt", "w");
+        if (summaryFPtr == NULL) {
+            printf("Error opening summary output file\n");
+            fclose(inFPtr);
+            free(line_buf);
+            free(accounts);
+            return 1;
+        }
+
+        // Write the summary information to the output.txt file
+        for(int i = 0; i < numAcc; i++) {
+            fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
+        }
+
+        // Close the summary output file
+        fclose(summaryFPtr);
 
         //debug code
         /**
