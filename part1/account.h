@@ -19,14 +19,14 @@ typedef struct
     pthread_mutex_t ac_lock;
 }account;
 
-extern account* accounts; // Declare the accounts array as an external variable
+extern account* accounts; // Declare the accounts array as an external variablem
 
 typedef struct 
 {
-    account acc;
+    account* acc;
     char tType;
     double amount;
-    account target_acc;
+    account* target_acc;
 
 }transaction;
 

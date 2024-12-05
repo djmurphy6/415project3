@@ -18,22 +18,24 @@ account* find_account(account* accounts, int numAcc, const char* account_number)
 }
 
 int process_transaction(transaction info) {
-    account acc = info.acc;
+    
     char tType = info.tType;
     double amount = 0;
 
     if(tType == 'D') {
         amount = info.amount;
-        acc.transaction_tracker += amount;
+        info.acc -> transaction_tracker += amount;
+        if(strcmp(info.acc -> account_number, "6847226299857821") == 0)
+            printf("Amount: %.2f Transaction tracker: %.2f\n", amount, info.acc -> transaction_tracker);
 
     } else if(tType == 'T') {
         amount = info.amount;
-        acc.transaction_tracker -= amount;
-        info.target_acc.transaction_tracker += amount;
+        info.acc->transaction_tracker -= amount;
+        info.target_acc->transaction_tracker += amount;
 
     } else if(tType == 'W') {
         amount = info.amount;
-        acc.transaction_tracker -= amount;
+        info.acc->transaction_tracker -= amount;
 
     } else if(tType == 'C') {
         /**
@@ -53,7 +55,9 @@ int process_transaction(transaction info) {
 int update_balance() {
     // Iterate through the array of accounts
     for (int i = 0; i < numAcc; i++) {
-        // Update the balance using the transaction tracker
+        // Update the balance using the transaction tracker                 
+        printf("Account balance: %.2f\n", accounts[i].balance);
+        printf("Transaction tracker: %.2f\n", accounts[i].transaction_tracker);
         accounts[i].balance += accounts[i].transaction_tracker;
 
         // Reset the transaction tracker

@@ -53,7 +53,13 @@ int main(int argc, char const *argv[]){
 
         command_line large_token_buffer;
 
-        account accounts[numAcc];
+        accounts = malloc(numAcc * sizeof(account));
+        if (accounts == NULL) {
+            printf("Error allocating memory for accounts\n");
+            fclose(inFPtr); // Close the file
+            free(line_buf); // Free the line buffer
+            return 1;
+        }
 
         for (int i = 0; i < numAcc; i++) {
             // Skip the index line (line 1 for each account)
@@ -134,10 +140,10 @@ int main(int argc, char const *argv[]){
             char *password = tokens.command_list[2];
 
             // find account associated with the account number
-            account acc = *find_account(accounts, numAcc, account_number);
+            account* acc = find_account(accounts, numAcc, account_number);
 
             // check if password matches
-            if(strcmp(acc.password, password) != 0){
+            if(strcmp(acc -> password, password) != 0){
                 //printf("Invalid password for account %s\n", account_number);
                 invalid++;
                 // skip to next line
@@ -155,16 +161,16 @@ int main(int argc, char const *argv[]){
                     // TRANSFER - has 4 tokens, T src_account password dest_account transfer_amount
                     tCt++;
 
-                    strncpy(txn.target_acc.account_number, tokens.command_list[3], 16);
-                    txn.target_acc.account_number[16] = '\0'; // Null-terminate
+                    strncpy(txn.target_acc->account_number, tokens.command_list[3], 16);
+                    txn.target_acc->account_number[16] = '\0'; // Null-terminate
 
                     //find the target account
-                    account *found_account = find_account(accounts, numAcc, txn.target_acc.account_number);
+                    account *found_account = find_account(accounts, numAcc, txn.target_acc->account_number);
                     if (found_account == NULL) {
                         //printf("Error: Target account not found\n");
                         continue;
                     }
-                    txn.target_acc = *found_account;
+                    txn.target_acc = found_account;
                     txn.amount = atof(tokens.command_list[4]);
                 }
                 else if(strcmp(tokens.command_list[0], "W") == 0){
@@ -202,6 +208,7 @@ int main(int argc, char const *argv[]){
         //free line buffer
         free (line_buf);
         printf("End of file\nBye Bye\n");
+        free(accounts);
 
         // Restore stdout back to the console
         /**
