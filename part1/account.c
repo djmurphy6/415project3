@@ -54,7 +54,7 @@ void* update_balance(void* arg) {
     // Iterate through the array of accounts
     for (int i = 0; i < numAcc; i++) {
         // Update the balance using the transaction tracker                 
-        accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
+        accounts[i].balance += (accounts[i].tra * accounts[i].reward_rate);
         // Print the balance before applying the reward rate
         //printf("Balance before reward for account %s: %.2f\n", accounts[i].account_number, accounts[i].balance);
         // Apply the reward rate to the balance
