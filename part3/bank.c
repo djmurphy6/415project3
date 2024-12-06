@@ -41,8 +41,6 @@ pthread_mutex_t bank_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t bank_cond = PTHREAD_COND_INITIALIZER;
 
 pthread_barrier_t barrier;
-pthread_cond_t balance_update_cond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t balance_update_lock = PTHREAD_MUTEX_INITIALIZER;
 
 // Instantiate file pointer
 FILE *inFPtr;
@@ -94,6 +92,7 @@ int main(int argc, char const *argv[]){
         for (int i = 0; i < numAcc; i++) {
             // Skip the index line (line 1 for each account)
             getline(&line_buf, &len, inFPtr);
+            accounts[i].transaction_tracker = 0.0; // Initialize the transaction tracker
             // printf("Account %d index line: %s", i, line_buf);
 
             for (int j = 0; j < 4; j++) {
@@ -146,10 +145,18 @@ int main(int argc, char const *argv[]){
             exit(EXIT_FAILURE);
         }
 
+        // Initialize the barrier
+        pthread_barrier_init(&barrier, NULL, NUM_WORKERS + 1);  // +1 for the bank thread
+
+
+
         // Create worker threads
         for (int i = 0; i < NUM_WORKERS; i++) {
             pthread_create(&thread_ids[i], NULL, worker_thread, NULL);
         }
+
+        pthread_t bank_thread_id;
+        pthread_create(&bank_thread_id, NULL, update_balance, NULL);     // Create a bank thread       
 
         
         
@@ -239,15 +246,14 @@ int main(int argc, char const *argv[]){
         pthread_mutex_unlock(&queue_lock);
 
         for (int j = 0; j < NUM_WORKERS; ++j){
-            printf("Joining thread %d\n", j);
             pthread_join(thread_ids[j], NULL);			// wait on our threads to rejoin main thread
         }
 
         printf("Total Transactions: %d\n", transactions);
 
         // Create a bank thread
-        pthread_t bank_thread_id;
-        pthread_create(&bank_thread_id, NULL, update_balance, NULL);
+        //pthread_t bank_thread_id;
+        //pthread_create(&bank_thread_id, NULL, update_balance, NULL);
 
         pthread_join(bank_thread_id, NULL);
 
@@ -292,27 +298,37 @@ int main(int argc, char const *argv[]){
 
 void* worker_thread(void* arg) {
     while (1) {
+        while (1) {
         pthread_mutex_lock(&queue_lock);
+
+        // Wait for a transaction if the queue is empty
         while (queue_size == 0 && !done) {
             pthread_cond_wait(&queue_cond, &queue_lock);
         }
 
-        if (queue_size == 0 && done) {
+        // Exit if done and queue is empty
+        if (done && queue_size == 0) {
             pthread_mutex_unlock(&queue_lock);
-            break; // Exit the thread if there are no more transactions and we're done
+            break;
         }
 
-        // Get the next transaction from the queue
-        transaction txn = transaction_queue[0];
-        memmove(transaction_queue, transaction_queue + 1, (queue_size - 1) * sizeof(transaction));
-        queue_size--;
+        // Fetch a transaction from the queue
+        transaction txn = transaction_queue[--queue_size];
         pthread_mutex_unlock(&queue_lock);
 
         // Process the transaction
-        pthread_mutex_lock(&queue_lock);
-        pthread_mutex_unlock(&queue_lock);
         process_transaction(&txn);
-        transactions++;
+
+        // Update counters and signal the bank thread if needed
+        pthread_mutex_lock(&counter_lock);
+        if (counter >= TRANSACTIONS_THRESHOLD) {
+            pthread_cond_signal(&bank_cond); // Notify `update_balance` for balance update
+            transactions_processed += counter;
+        }
+        pthread_mutex_unlock(&counter_lock);
+
+        // Wait at the barrier after processing a transaction
+        pthread_barrier_wait(&barrier);
     }
     return NULL;
 }

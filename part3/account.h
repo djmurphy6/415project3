@@ -4,13 +4,24 @@
 #include "string_parser.h"
 
 #define NUM_WORKERS 10
+#define INITIAL_QUEUE_SIZE 10
+#define TRANSACTIONS_THRESHOLD 5000
+
 
 extern int numAcc; // Declare the numAcc variable as an external variable
 extern int counter; // Declare the counter variable as an external variable
 
-extern pthread_mutex_t counter_lock = PTHREAD_MUTEX_INITIALIZER;
-extern pthread_mutex_t bank_lock = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t counter_lock;
+extern pthread_mutex_t bank_lock;
 
+extern pthread_cond_t counter_cond;
+extern pthread_cond_t bank_cond;
+
+extern pthread_barrier_t barrier;
+
+extern int done; // flag to see if all transactions are done
+extern int transactions_processed;
+extern int total_transactions;
 
 
 typedef struct

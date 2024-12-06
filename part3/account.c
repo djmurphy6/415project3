@@ -60,13 +60,33 @@ void* process_transaction(void* arg) {
 
 
 void* update_balance(void* arg) {
-    // Iterate through the array of accounts
-    for (int i = 0; i < numAcc; i++) {
-        // Update the balance using the transaction tracker
-        pthread_mutex_lock(&accounts[i].ac_lock);                 
-        accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
-        pthread_mutex_unlock(&accounts[i].ac_lock);
-    }
+    pthread_mutex_lock(&counter_lock);
+
+        // Wait until enough transactions have been processed or all transactions are done
+        while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= total_transactions)) {
+            pthread_cond_wait(&bank_cond, &counter_lock);
+        }
+
+        // Exit the loop if processing is complete
+        if (done && transactions_processed >= total_transactions) {
+            pthread_mutex_unlock(&counter_lock);
+            break;
+        }
+
+        // Reset counter and allow worker threads to continue
+        counter = 0;
+        pthread_mutex_unlock(&counter_lock);
+
+        // Perform the balance update
+        for (int i = 0; i < numAcc; i++) {
+            pthread_mutex_lock(&accounts[i].ac_lock);
+            accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
+            pthread_mutex_unlock(&accounts[i].ac_lock);
+        }
+
+        // Synchronize threads using the barrier
+        pthread_barrier_wait(&barrier);
+
     return NULL;
 }
 
