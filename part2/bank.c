@@ -23,12 +23,14 @@ pthread_t thread_ids[NUM_WORKERS];
 pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
 
+// Instantiate file pointer
+FILE *inFPtr;
+
 void* worker_thread(void* arg);
 
 int main(int argc, char const *argv[]){
     if(argc == 2){ //checking for command line argument && (strcmp(argv[1], "f") == 0)
         //opening file to read
-        FILE *inFPtr;
         inFPtr = fopen (argv[1], "r");
         if(inFPtr == NULL) {
             printf("Error opening file");
@@ -263,6 +265,10 @@ void* worker_thread(void* arg) {
     while (1) {
         pthread_mutex_lock(&queue_lock);
         while (queue_size == 0) {
+            if (feof(inFPtr)) {
+                pthread_mutex_unlock(&queue_lock);
+                return NULL;
+            }
             pthread_cond_wait(&queue_cond, &queue_lock);
         }
         // Get the next transaction from the queue
