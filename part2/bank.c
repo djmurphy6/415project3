@@ -247,14 +247,6 @@ int main(int argc, char const *argv[]){
         // Close the summary output file
         fclose(summaryFPtr);
 
-        //debug code
-        /**
-        printf("Transfer Count: %d\n", tCt);
-        printf("Withdraw Count: %d\n", wCt);
-        printf("Check Balance Count: %d\n", cCt);
-        printf("Invalid Count: %d\n", invalid);
-        */
-
         fclose(inFPtr);
         //free line buffer
         free (line_buf);
@@ -288,7 +280,9 @@ void* worker_thread(void* arg) {
         pthread_mutex_unlock(&queue_lock);
 
         // Process the transaction
+        pthread_mutex_lock(&queue_lock);
         transactions++;
+        pthread_mutex_unlock(&queue_lock);
         process_transaction(&txn);
     }
     return NULL;
