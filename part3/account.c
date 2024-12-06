@@ -60,7 +60,8 @@ void* process_transaction(void* arg) {
 
 
 void* update_balance(void* arg) {
-    pthread_mutex_lock(&counter_lock);
+    while (1) {
+        pthread_mutex_lock(&counter_lock);
 
         // Wait until enough transactions have been processed or all transactions are done
         while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= total_transactions)) {
@@ -86,6 +87,7 @@ void* update_balance(void* arg) {
 
         // Synchronize threads using the barrier
         pthread_barrier_wait(&barrier);
+    }
 
     return NULL;
 }

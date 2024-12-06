@@ -298,7 +298,6 @@ int main(int argc, char const *argv[]){
 
 void* worker_thread(void* arg) {
     while (1) {
-        while (1) {
         pthread_mutex_lock(&queue_lock);
 
         // Wait for a transaction if the queue is empty
