@@ -52,6 +52,13 @@ void* process_transaction(void* arg) {
 
     } else if(tType == 'C') {
     }
+    
+    if(tType != 'C') {
+        // Print counter
+        pthread_mutex_lock(&counter_lock);
+            printf("Counter: %d\n", counter);
+        pthread_mutex_unlock(&counter_lock);
+    }
 
     // Unlock account after processing transaction
     pthread_mutex_unlock(&info->acc->ac_lock);
