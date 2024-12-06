@@ -325,11 +325,6 @@ void* worker_thread(void* arg) {
         // Process the transaction
         process_transaction(&txn);
 
-        // Print counter
-        pthread_mutex_lock(&counter_lock);
-            printf("Counter: %d\n", counter);
-        pthread_mutex_unlock(&counter_lock);
-
         // Update counters and signal the bank thread if needed
         pthread_mutex_lock(&counter_lock);
         if (counter >= TRANSACTIONS_THRESHOLD) {
