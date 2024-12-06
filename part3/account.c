@@ -16,6 +16,10 @@ account* find_account(account* accounts, int numAcc, const char* account_number)
 }
 
 void* process_transaction(void* arg) {
+
+    // Synchronize threads using the barrier
+        //pthread_barrier_wait(&barrier);
+    
     // Cast the argument to a transaction struct
     transaction* info = (transaction*)arg;
     
@@ -55,9 +59,11 @@ void* process_transaction(void* arg) {
     
     if(tType != 'C') {
         // Print counter
+        /**
         pthread_mutex_lock(&counter_lock);
             printf("Counter: %d\n", counter);
         pthread_mutex_unlock(&counter_lock);
+        */
     }
 
     // Unlock account after processing transaction
@@ -67,24 +73,29 @@ void* process_transaction(void* arg) {
 
 
 void* update_balance(void* arg) {
-    printf("Bank thread started\n");
+    // Synchronize threads using the barrier
+        //pthread_barrier_wait(&barrier);
+    //printf("Bank thread started\n");
     while (1) {
-
+        
         // Wait until enough transactions have been processed or all transactions are done
-        while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= total_transactions)) {
-            printf("Waiting for transactions to reach threshold\n");
+        while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= 90000)) {
+            printf("Waiting\n");
             pthread_cond_wait(&bank_cond, &counter_lock);
-            printf("Counter: %d\n", counter);
+            printf("Out of it\n");
         }
 
         // Exit the loop if processing is complete
+        /**
         if (done && transactions_processed >= total_transactions) {
             pthread_mutex_unlock(&counter_lock);
             break;
         }
+        */
 
         // Reset counter and allow worker threads to continue
         transactions_processed += counter;
+        printf("Counter Reset\n");
         counter = 0;
 
         // Perform the balance update
@@ -95,8 +106,13 @@ void* update_balance(void* arg) {
             pthread_mutex_unlock(&accounts[i].ac_lock);
         }
 
-        // Synchronize threads using the barrier
-        pthread_barrier_wait(&barrier);
+        printf("Transactions_processed: %d\n", transactions_processed);
+
+        if(transactions_processed >= 90000){
+            pthread_mutex_unlock(&counter_lock);
+            break;
+        }
+        
     }
 
     return NULL;

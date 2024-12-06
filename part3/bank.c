@@ -147,7 +147,7 @@ int main(int argc, char const *argv[]){
         }
 
         // Initialize the barrier
-        pthread_barrier_init(&barrier, NULL, NUM_WORKERS + 1);  // +1 for the bank thread
+        pthread_barrier_init(&barrier, NULL, NUM_WORKERS);  // +1 for the bank thread
 
 
 
@@ -244,17 +244,16 @@ int main(int argc, char const *argv[]){
         total_transactions = dCt + tCt + wCt;
         printf("Real Total Transactions: %d\n", total_transactions);
 
+
         pthread_mutex_lock(&queue_lock);
         done = 1; // Signal that no more transactions will be added
         pthread_cond_broadcast(&queue_cond); // Wake up all waiting threads
         pthread_mutex_unlock(&queue_lock);
 
+
         for (int j = 0; j < NUM_WORKERS; ++j){
             pthread_join(thread_ids[j], NULL);			// wait on our threads to rejoin main thread
         }
-
-        printf("Total Transactions: %d\n", transactions);
-
         // Create a bank thread
         //pthread_t bank_thread_id;
         //pthread_create(&bank_thread_id, NULL, update_balance, NULL);
@@ -306,7 +305,7 @@ void* worker_thread(void* arg) {
 
         // Wait for a transaction if the queue is empty
         while (queue_size == 0 && !done) {
-            printf("Queue empty - Worker thread waiting\n");
+            //printf("Queue empty - Worker thread waiting\n");
             pthread_cond_wait(&queue_cond, &queue_lock);
         }
 
