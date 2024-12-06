@@ -46,7 +46,6 @@ void* process_transaction(void* arg) {
 
     // Unlock account after processing transaction
     pthread_mutex_unlock(&info->acc->ac_lock);
-    printf("Transaction processed\n");
     return NULL;
 }
 

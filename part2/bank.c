@@ -211,14 +211,13 @@ int main(int argc, char const *argv[]){
             free_command_line(&large_token_buffer);
         }
 
-        printf("Transactions pt1: %d\n", transactions);
-
         for (int j = 0; j < NUM_WORKERS; ++j){
             printf("Joining thread %d\n", j);
             pthread_join(thread_ids[j], NULL);			// wait on our threads to rejoin main thread
         }
 
-        printf("Transactions pt2: %d\n", transactions);
+        printf("Total Transactions: %d\n", transactions);
+
 
         update_balance(NULL);
 
@@ -236,6 +235,7 @@ int main(int argc, char const *argv[]){
         for(int i = 0; i < numAcc; i++) {
             fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
         }
+
 
         // Close the summary output file
         fclose(summaryFPtr);
@@ -278,9 +278,8 @@ void* worker_thread(void* arg) {
         pthread_mutex_unlock(&queue_lock);
 
         // Process the transaction
-        printf("Processing transaction\n");
         transactions++;
-        printf("Transactions: %d\n", transactions);
+        printf("Processing transaction %d\n", transactions);
         process_transaction(&txn);
     }
     return NULL;
