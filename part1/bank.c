@@ -160,7 +160,6 @@ int main(int argc, char const *argv[]){
 
                 // process the transaction
                 //printf("Processing transaction\n");
-                printf("Transaction type: %c\n", txn.tType);
                 process_transaction(txn);
                 
             }

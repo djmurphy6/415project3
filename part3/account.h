@@ -6,6 +6,12 @@
 #define NUM_WORKERS 10
 
 extern int numAcc; // Declare the numAcc variable as an external variable
+extern int counter; // Declare the counter variable as an external variable
+
+extern pthread_mutex_t counter_lock = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t bank_lock = PTHREAD_MUTEX_INITIALIZER;
+
+
 
 typedef struct
 {

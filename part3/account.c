@@ -29,17 +29,26 @@ void* process_transaction(void* arg) {
         amount = info->amount;
         info->acc->transaction_tracker += amount;
         info->acc->balance += amount;
+        pthread_mutex_lock(&counter_lock);
+        counter++;
+        pthread_mutex_unlock(&counter_lock);
 
     } else if(tType == 'T') {
         amount = info->amount;
         info->acc->balance -= amount;
         info->acc->transaction_tracker += amount;
         info->target_acc->balance += amount;
+        pthread_mutex_lock(&counter_lock);
+        counter++;
+        pthread_mutex_unlock(&counter_lock);
 
     } else if(tType == 'W') {
         amount = info->amount;
         info->acc->balance -= amount;
         info->acc->transaction_tracker += amount;
+        pthread_mutex_lock(&counter_lock);
+        counter++;
+        pthread_mutex_unlock(&counter_lock);
 
     } else if(tType == 'C') {
     }

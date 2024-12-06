@@ -29,6 +29,9 @@ pthread_t thread_ids[NUM_WORKERS];
 pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
 
+pthread_mutex_t counter_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t bank_lock = PTHREAD_MUTEX_INITIALIZER;
+
 // Instantiate file pointer
 FILE *inFPtr;
 
@@ -295,9 +298,9 @@ void* worker_thread(void* arg) {
 
         // Process the transaction
         pthread_mutex_lock(&queue_lock);
-        transactions++;
         pthread_mutex_unlock(&queue_lock);
         process_transaction(&txn);
+        transactions++;
     }
     return NULL;
 }
