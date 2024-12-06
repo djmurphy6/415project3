@@ -75,6 +75,7 @@ int main(int argc, char const *argv[]){
         for (int i = 0; i < numAcc; i++) {
             // Skip the index line (line 1 for each account)
             getline(&line_buf, &len, inFPtr);
+            accounts[i].transaction_tracker = 0.0; // Initialize the transaction tracker
             // printf("Account %d index line: %s", i, line_buf);
 
             for (int j = 0; j < 4; j++) {

@@ -12,6 +12,10 @@ account* accounts = NULL;
 
 #define NUM_WORKERS 10
 #define INITIAL_QUEUE_SIZE 10
+#define TRANSACTIONS_THRESHOLD 5000
+
+int transactions_processed = 0;
+int shutdown = 0;
 
 transaction* transaction_queue = NULL;
 int queue_size = 0;
@@ -30,7 +34,15 @@ pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
 
 pthread_mutex_t counter_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t counter_cond = PTHREAD_COND_INITIALIZER;
+
+
 pthread_mutex_t bank_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t bank_cond = PTHREAD_COND_INITIALIZER;
+
+pthread_barrier_t barrier;
+pthread_cond_t balance_update_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t balance_update_lock = PTHREAD_MUTEX_INITIALIZER;
 
 // Instantiate file pointer
 FILE *inFPtr;
