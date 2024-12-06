@@ -74,6 +74,7 @@ void* update_balance(void* arg) {
         while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= total_transactions)) {
             printf("Waiting for transactions to reach threshold\n");
             pthread_cond_wait(&bank_cond, &counter_lock);
+            printf("Counter: %d\n", counter);
         }
 
         // Exit the loop if processing is complete
