@@ -305,6 +305,7 @@ void* worker_thread(void* arg) {
 
         // Wait for a transaction if the queue is empty
         while (queue_size == 0 && !done) {
+            printf("Queue empty - Worker thread waiting\n");
             pthread_cond_wait(&queue_cond, &queue_lock);
         }
 
