@@ -154,11 +154,12 @@ int main(int argc, char const *argv[]){
         // Create worker threads
         for (int i = 0; i < NUM_WORKERS; i++) {
             pthread_create(&thread_ids[i], NULL, worker_thread, NULL);
+            printf("Worker thread %d created\n", i);
         }
 
         pthread_t bank_thread_id;
         pthread_create(&bank_thread_id, NULL, update_balance, NULL);     // Create a bank thread       
-
+        printf("Bank thread created\n");
         
         
         while(getline(&line_buf, &len, inFPtr) != -1){
@@ -300,7 +301,6 @@ int main(int argc, char const *argv[]){
 }
 
 void* worker_thread(void* arg) {
-    printf("Worker thread %ld started\n", (long)pthread_self());
     while (1) {
         pthread_mutex_lock(&queue_lock);
 
