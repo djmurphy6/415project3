@@ -279,7 +279,6 @@ void* worker_thread(void* arg) {
 
         // Process the transaction
         transactions++;
-        printf("Processing transaction %d\n", transactions);
         process_transaction(&txn);
     }
     return NULL;
