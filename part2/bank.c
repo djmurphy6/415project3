@@ -242,8 +242,7 @@ int main(int argc, char const *argv[]){
         for(int i = 0; i < numAcc; i++) {
             fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
         }
-
-
+        
         // Close the summary output file
         fclose(summaryFPtr);
 
