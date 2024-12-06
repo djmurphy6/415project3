@@ -260,6 +260,7 @@ int main(int argc, char const *argv[]){
         free (line_buf);
         printf("End of file\nBye Bye\n");
         free(accounts);
+        free(transaction_queue);
         
     }
     else{
