@@ -17,6 +17,8 @@ transaction* transaction_queue = NULL;
 int queue_size = 0;
 int max_queue_size = INITIAL_QUEUE_SIZE;
 
+int done = 0;
+
 
 
 pthread_t thread_ids[NUM_WORKERS];
@@ -211,6 +213,11 @@ int main(int argc, char const *argv[]){
             free_command_line(&large_token_buffer);
         }
 
+        pthread_mutex_lock(&queue_lock);
+        done = 1; // Signal that no more transactions will be added
+        pthread_cond_broadcast(&queue_cond); // Wake up all waiting threads
+        pthread_mutex_unlock(&queue_lock);
+
         for (int j = 0; j < NUM_WORKERS; ++j){
             printf("Joining thread %d\n", j);
             pthread_join(thread_ids[j], NULL);			// wait on our threads to rejoin main thread
@@ -264,13 +271,15 @@ int main(int argc, char const *argv[]){
 void* worker_thread(void* arg) {
     while (1) {
         pthread_mutex_lock(&queue_lock);
-        while (queue_size == 0) {
-            if (feof(inFPtr)) {
-                pthread_mutex_unlock(&queue_lock);
-                return NULL;
-            }
+        while (queue_size == 0 && !done) {
             pthread_cond_wait(&queue_cond, &queue_lock);
         }
+
+        if (queue_size == 0 && done) {
+            pthread_mutex_unlock(&queue_lock);
+            break; // Exit the thread if there are no more transactions and we're done
+        }
+
         // Get the next transaction from the queue
         transaction txn = transaction_queue[0];
         memmove(transaction_queue, transaction_queue + 1, (queue_size - 1) * sizeof(transaction));
