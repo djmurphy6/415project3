@@ -62,7 +62,7 @@ int main(int argc, char const *argv[]){
         }
 
         command_line large_token_buffer;
-
+        printf("Size of account: %lu\n",sizeof(account));
         accounts = malloc(numAcc * sizeof(account));
         if (accounts == NULL) {
             printf("Error allocating memory for accounts\n");
@@ -237,24 +237,12 @@ int main(int argc, char const *argv[]){
             free(accounts);
             return 1;
         }
-        
-        printf("0 balance: %.2f\n", accounts[0].balance);
-        printf("1 balance: %.2f\n", accounts[1].balance);
-        printf("2 balance: %.2f\n", accounts[2].balance);
-        printf("3 balance: %.2f\n", accounts[3].balance);
-        printf("4 balance: %.2f\n", accounts[4].balance);
-        printf("5 balance: %.2f\n", accounts[5].balance);
-        printf("6 balance: %.2f\n", accounts[6].balance);
-        printf("7 balance: %.2f\n", accounts[7].balance);
-        printf("8 balance: %.2f\n", accounts[8].balance);
-        printf("9 balance: %.2f\n", accounts[9].balance);
-        
-
-        //printf("Here is the balance of account 0: %.2f\n", accounts[0].balance);
 
         // Write the summary information to the output.txt file
         for(int i = 0; i < numAcc; i++) {
-            //fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
+            pthread_mutex_lock(&accounts[i].ac_lock);
+            fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
+            pthread_mutex_unlock(&accounts[i].ac_lock);
         }
 
         // Close the summary output file
