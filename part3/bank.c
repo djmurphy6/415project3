@@ -241,6 +241,7 @@ int main(int argc, char const *argv[]){
             free_command_line(&large_token_buffer);
         }
         total_transactions = dCt + tCt + wCt;
+        printf("Real Total Transactions: %d\n", total_transactions);
 
         pthread_mutex_lock(&queue_lock);
         done = 1; // Signal that no more transactions will be added
