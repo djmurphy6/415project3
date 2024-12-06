@@ -17,8 +17,12 @@ transaction* transaction_queue = NULL;
 int queue_size = 0;
 int max_queue_size = INITIAL_QUEUE_SIZE;
 
-int done = 0;
+int done = 0; // flag to see if all transactions are done
 
+int counter = 0;
+int total_transactions = 0;
+
+int bank_signaled = 0;      // bool to track if our bank is performing an update
 
 
 pthread_t thread_ids[NUM_WORKERS];
@@ -257,9 +261,9 @@ int main(int argc, char const *argv[]){
         pthread_mutex_destroy(&queue_lock);
         pthread_cond_destroy(&queue_cond);
 
-        fclose(inFPtr);
-        //free line buffer
-        free (line_buf);
+
+        fclose(inFPtr); //close file
+        free (line_buf); //free line buffer
         printf("End of file\nBye Bye\n");
         free(accounts);
         free(transaction_queue);
