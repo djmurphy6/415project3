@@ -238,11 +238,13 @@ int main(int argc, char const *argv[]){
             return 1;
         }
 
+        printf("Here is the balance of account 0: %.2f\n", accounts[0].balance);
+
         // Write the summary information to the output.txt file
         for(int i = 0; i < numAcc; i++) {
-            fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
+            //fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
         }
-        
+
         // Close the summary output file
         fclose(summaryFPtr);
 
