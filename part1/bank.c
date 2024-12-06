@@ -99,25 +99,6 @@ int main(int argc, char const *argv[]){
                 // Free memory for the token buffer
                 free_command_line(&large_token_buffer);
             }
-            // Create the filename for the output file
-            char filename[20];
-            snprintf(filename, sizeof(filename), "account_%d.txt", i);
-
-            // Copy the filename to the account struct
-            strcpy(accounts[i].out_file, filename);
-
-            // Open file for writing
-            FILE *outFPtr = fopen(accounts[i].out_file, "w");
-            if (outFPtr == NULL) {
-                printf("Error opening output file for account %d\n", i);
-                fclose(inFPtr);
-                free(line_buf);
-                return 1;
-            }
-
-            fprintf(outFPtr, "account: %d\nCurrent Savings Balance %.2f\n", i, accounts[i].balance);
-            fclose(outFPtr);
-            
         }
 
         int dCt = 0;

@@ -4,7 +4,7 @@
 #include "string_parser.h"
 
 extern int numAcc; // Declare the numAcc variable as an external variable
-#define MAX_QUEUE_SIZE 1000
+#define MAX_QUEUE_SIZE 10000000
 
 typedef struct
 {
@@ -20,7 +20,7 @@ typedef struct
     pthread_mutex_t ac_lock;
 }account;
 
-extern account* accounts; // Declare the accounts array as an external variablem
+extern account* accounts; // Declare the accounts array as an external variable
 
 typedef struct 
 {

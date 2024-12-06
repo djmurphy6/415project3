@@ -59,6 +59,12 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
+    transaction_queue = malloc(MAX_QUEUE_SIZE * sizeof(transaction));
+    if (transaction_queue == NULL) {
+        perror("Failed to allocate memory for transaction queue");
+        exit(EXIT_FAILURE);
+    }
+
     // Initialize accounts
     for (int i = 0; i < numAcc; i++) {
         if (getline(&line_buf, &len, inFPtr) == -1) {

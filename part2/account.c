@@ -91,39 +91,49 @@ int process_transaction(transaction info) {
 
     // Lock the source account before modifying
     pthread_mutex_lock(&info.acc->ac_lock);
+    printf("Locked source account %s\n", info.acc->account_number);
 
     if (tType == 'D') { // Deposit
         amount = info.amount;
         info.acc->transaction_tracker += amount;
         info.acc->balance += amount;
+        printf("Deposited %.2f to account %s\n", amount, info.acc->account_number);
     } else if (tType == 'T') { // Transfer
         amount = info.amount;
         // Deduct from source account
         info.acc->balance -= amount;
         info.acc->transaction_tracker += amount;
+        printf("Transferred %.2f from account %s\n", amount, info.acc->account_number);
 
         // Lock the target account before modifying
         pthread_mutex_lock(&info.target_acc->ac_lock);
+        printf("Locked target account %s\n", info.target_acc->account_number);
         info.target_acc->balance += amount;
+        printf("Transferred %.2f to account %s\n", amount, info.target_acc->account_number);
         pthread_mutex_unlock(&info.target_acc->ac_lock);
+        printf("Unlocked target account %s\n", info.target_acc->account_number);
     } else if (tType == 'W') { // Withdraw
         amount = info.amount;
         info.acc->balance -= amount;
         info.acc->transaction_tracker += amount;
+        printf("Withdrew %.2f from account %s\n", amount, info.acc->account_number);
     } else if (tType == 'C') { // Check balance
         FILE* out_file = fopen(info.acc->out_file, "a");
         if (out_file == NULL) {
             perror("Error opening file");
             pthread_mutex_unlock(&info.acc->ac_lock);
+            printf("Unlocked source account %s\n", info.acc->account_number);
             return -1;
         }
         fprintf(out_file, "Current Savings Balance %.2f\n", 
                 (info.acc->balance + info.acc->transaction_tracker));
         fclose(out_file);
+        printf("Checked balance for account %s\n", info.acc->account_number);
     }
 
     // Unlock the source account after processing
     pthread_mutex_unlock(&info.acc->ac_lock);
+    printf("Unlocked source account %s\n", info.acc->account_number);
 
     return 0;
 }
