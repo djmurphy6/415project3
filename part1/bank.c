@@ -105,7 +105,8 @@ int main(int argc, char const *argv[]){
             //printf("Large Token Buffer: %s\n", large_token_buffer.command_list[0]);
 
             transaction txn = {0};
-            //memory leak here
+            // need to allocate memory for acc and target_acc
+            
             command_line tokens = str_filler(large_token_buffer.command_list[0], " ");
 
             char *account_number = tokens.command_list[1];

@@ -62,7 +62,7 @@ int main(int argc, char const *argv[]){
         }
 
         command_line large_token_buffer;
-        printf("Size of account: %lu\n",sizeof(account));
+
         accounts = malloc(numAcc * sizeof(account));
         if (accounts == NULL) {
             printf("Error allocating memory for accounts\n");
@@ -240,9 +240,7 @@ int main(int argc, char const *argv[]){
 
         // Write the summary information to the output.txt file
         for(int i = 0; i < numAcc; i++) {
-            pthread_mutex_lock(&accounts[i].ac_lock);
             fprintf(summaryFPtr, "%d balance:  %.2f\n\n", i, accounts[i].balance);
-            pthread_mutex_unlock(&accounts[i].ac_lock);
         }
 
         // Close the summary output file

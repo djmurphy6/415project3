@@ -53,8 +53,10 @@ void* process_transaction(void* arg) {
 void* update_balance(void* arg) {
     // Iterate through the array of accounts
     for (int i = 0; i < numAcc; i++) {
-        // Update the balance using the transaction tracker                 
+        // Update the balance using the transaction tracker
+        pthread_mutex_lock(&accounts[i].ac_lock);                 
         accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
+        pthread_mutex_unlock(&accounts[i].ac_lock);
     }
     return NULL;
 }
