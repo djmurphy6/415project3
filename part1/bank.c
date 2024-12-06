@@ -19,16 +19,6 @@ int main(int argc, char const *argv[]){
             return 1;
         }
 
-        // Redirect stdout to output.txt
-        /**
-        FILE *outFPtr = freopen("output.txt", "w", stdout);
-        if(outFPtr == NULL) {
-            printf("Error redirecting stdout to output.txt");
-            fclose(inFPtr); // Close the input file
-            return 1;
-        }
-        */
-
         //declare line_buffer
         size_t len = 128;
         char* line_buf = malloc (len);
@@ -211,13 +201,6 @@ int main(int argc, char const *argv[]){
         printf("End of file\nBye Bye\n");
         free(accounts);
         
-
-        // Restore stdout back to the console
-        /**
-        fclose(outFPtr); // Close the output file
-        freopen("/dev/tty", "w", stdout); // Restores stdout to terminal on UNIX-based systems
-        return 0;
-        */
     }
     else{
         printf("Invalid number of arguments\n");

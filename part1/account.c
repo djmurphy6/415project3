@@ -48,23 +48,10 @@ void* update_balance(void* arg) {
     for (int i = 0; i < numAcc; i++) {
         // Update the balance using the transaction tracker                 
         accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
-        // Print the balance before applying the reward rate
-        //printf("Balance before reward for account %s: %.2f\n", accounts[i].account_number, accounts[i].balance);
-        // Apply the reward rate to the balance
-        //accounts[i].balance += accounts[i].balance * accounts[i].reward_rate;
-        // Print balance after reward
-        //printf("Balance after reward for account %s: %.2f\n", accounts[i].account_number, accounts[i].balance);
 
         // Reset the transaction tracker
         accounts[i].transaction_tracker = 0;
 
-        // Optionally log the updated balance to the account's output file
-        FILE* out_file = fopen(accounts[i].out_file, "a");
-        if (out_file == NULL) {
-            perror("Error opening account file");
-        }
-        fprintf(out_file, "Updated Savings Balance: %.2f\n", accounts[i].balance);
-        fclose(out_file);
     }
     return NULL;
 }
