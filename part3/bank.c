@@ -14,9 +14,6 @@ account* accounts = NULL;
 #define INITIAL_QUEUE_SIZE 10
 #define TRANSACTIONS_THRESHOLD 5000
 
-int transactions_processed = 0;
-int shutdown = 0;
-
 transaction* transaction_queue = NULL;
 int queue_size = 0;
 int max_queue_size = INITIAL_QUEUE_SIZE;
@@ -25,6 +22,7 @@ int done = 0; // flag to see if all transactions are done
 
 int counter = 0;
 int total_transactions = 0;
+int transactions_processed = 0;
 
 int bank_signaled = 0;      // bool to track if our bank is performing an update
 
@@ -239,6 +237,7 @@ int main(int argc, char const *argv[]){
             free_command_line(&tokens);
             free_command_line(&large_token_buffer);
         }
+        total_transactions = dCt + tCt + wCt;
 
         pthread_mutex_lock(&queue_lock);
         done = 1; // Signal that no more transactions will be added
@@ -312,7 +311,9 @@ void* worker_thread(void* arg) {
         }
 
         // Fetch a transaction from the queue
-        transaction txn = transaction_queue[--queue_size];
+        transaction txn = transaction_queue[0];
+        memmove(transaction_queue, transaction_queue + 1, (queue_size - 1) * sizeof(transaction));
+        queue_size--;
         pthread_mutex_unlock(&queue_lock);
 
         // Process the transaction
@@ -322,7 +323,6 @@ void* worker_thread(void* arg) {
         pthread_mutex_lock(&counter_lock);
         if (counter >= TRANSACTIONS_THRESHOLD) {
             pthread_cond_signal(&bank_cond); // Notify `update_balance` for balance update
-            transactions_processed += counter;
         }
         pthread_mutex_unlock(&counter_lock);
 

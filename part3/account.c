@@ -61,7 +61,6 @@ void* process_transaction(void* arg) {
 
 void* update_balance(void* arg) {
     while (1) {
-        pthread_mutex_lock(&counter_lock);
 
         // Wait until enough transactions have been processed or all transactions are done
         while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= total_transactions)) {
@@ -75,13 +74,14 @@ void* update_balance(void* arg) {
         }
 
         // Reset counter and allow worker threads to continue
+        transactions_processed += counter;
         counter = 0;
-        pthread_mutex_unlock(&counter_lock);
 
         // Perform the balance update
         for (int i = 0; i < numAcc; i++) {
             pthread_mutex_lock(&accounts[i].ac_lock);
             accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
+            accounts[i].transaction_tracker = 0;
             pthread_mutex_unlock(&accounts[i].ac_lock);
         }
 
