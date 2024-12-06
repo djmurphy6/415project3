@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include "account.h"
 #include "string_parser.h"
@@ -296,6 +299,7 @@ int main(int argc, char const *argv[]){
 }
 
 void* worker_thread(void* arg) {
+    printf("Worker thread %ld started\n", (long)pthread_self());
     while (1) {
         pthread_mutex_lock(&queue_lock);
 
@@ -318,6 +322,11 @@ void* worker_thread(void* arg) {
 
         // Process the transaction
         process_transaction(&txn);
+
+        // Print counter
+        pthread_mutex_lock(&counter_lock);
+            printf("Counter: %d\n", counter);
+        pthread_mutex_unlock(&counter_lock);
 
         // Update counters and signal the bank thread if needed
         pthread_mutex_lock(&counter_lock);

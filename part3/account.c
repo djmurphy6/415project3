@@ -60,6 +60,7 @@ void* process_transaction(void* arg) {
 
 
 void* update_balance(void* arg) {
+    printf("Bank thread started\n");
     while (1) {
 
         // Wait until enough transactions have been processed or all transactions are done
