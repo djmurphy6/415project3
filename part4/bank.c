@@ -103,3 +103,41 @@ int main(int argc, char const* argv[]) {
 
     return 0;
 }
+
+void* worker_thread(void* arg) {
+    while (1) {
+        pthread_mutex_lock(&queue_lock);
+
+        // Wait for a transaction if the queue is empty
+        while (queue_size == 0 && !done) {
+            //printf("Queue empty - Worker thread waiting\n");
+            pthread_cond_wait(&queue_cond, &queue_lock);
+        }
+
+        // Exit if done and queue is empty
+        if (done && queue_size == 0) {
+            pthread_mutex_unlock(&queue_lock);
+            break;
+        }
+
+        // Fetch a transaction from the queue
+        transaction txn = transaction_queue[0];
+        memmove(transaction_queue, transaction_queue + 1, (queue_size - 1) * sizeof(transaction));
+        queue_size--;
+        pthread_mutex_unlock(&queue_lock);
+
+        // Process the transaction
+        process_transaction(&txn);
+
+        // Update counters and signal the bank thread if needed
+        pthread_mutex_lock(&counter_lock);
+        if (counter >= TRANSACTIONS_THRESHOLD) {
+            pthread_cond_signal(&bank_cond); // Notify `update_balance` for balance update
+        }
+        pthread_mutex_unlock(&counter_lock);
+
+        // Wait at the barrier after processing a transaction
+        pthread_barrier_wait(&barrier);
+    }
+    return NULL;
+}
