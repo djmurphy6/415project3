@@ -117,7 +117,7 @@ void* update_balance(void* arg) {
             sprintf(filename, "account_%d.txt", i);
             FILE *file = fopen(filename, "a");
             if (file != NULL) {
-                fprintf(file, "Current Balance: %.2f\n", accounts[i].balance);
+                fprintf(file, "Current Balance:\t%.2f\n", accounts[i].balance);
                 fclose(file);
             } else {
                 perror("Error opening file");
