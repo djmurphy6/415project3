@@ -43,17 +43,10 @@ pthread_cond_t bank_cond = PTHREAD_COND_INITIALIZER;
 
 pthread_barrier_t barrier;
 
-// for audit
-int numCheck = 0;
-pthread_mutex_t pipe_lock;
-
-int pipe_fd[2];
-
 // Instantiate file pointer
 FILE *inFPtr;
 
 void* worker_thread(void* arg);
-void auditor_process(int read_fd);
 
 int main(int argc, char const *argv[]){
     if(argc == 2){ //checking for command line argument && (strcmp(argv[1], "f") == 0)
@@ -94,30 +87,6 @@ int main(int argc, char const *argv[]){
             fclose(inFPtr); // Close the file
             free(line_buf); // Free the line buffer
             return 1;
-        }
-
-        // check pipe
-        if(pipe(pipe_fd) == -1){
-            perror("pipe");
-            return 1;
-        }
-
-        // fork process
-        id_t pid = fork();
-        if (pid == -1) {
-            perror("fork");
-            exit(EXIT_FAILURE);
-        }
-
-        if (pid == 0) {
-            // Child process (Auditor)
-            close(pipe_fd[1]); // Close the write end of the pipe
-            auditor_process(pipe_fd[0]);
-            close(pipe_fd[0]);
-            exit(EXIT_SUCCESS);
-        } else {
-            // Parent process (Duck Bank)
-            close(pipe_fd[0]); // Close the read end of the pipe
         }
         
 
@@ -271,12 +240,11 @@ int main(int argc, char const *argv[]){
             free_command_line(&large_token_buffer);
         }
         total_transactions = dCt + tCt + wCt;
-        
+        printf("Real Total Transactions: %d\n", total_transactions);
 
 
         pthread_mutex_lock(&queue_lock);
         done = 1; // Signal that no more transactions will be added
-        printf("All transactions have been added to the queue\n");
         pthread_cond_broadcast(&queue_cond); // Wake up all waiting threads
         pthread_mutex_unlock(&queue_lock);
 
@@ -284,7 +252,6 @@ int main(int argc, char const *argv[]){
         for (int j = 0; j < NUM_WORKERS; ++j){
             pthread_join(thread_ids[j], NULL);			// wait on our threads to rejoin main thread
         }
-        printf("All worker threads have joined\n");
 
         pthread_join(bank_thread_id, NULL);
 
@@ -333,7 +300,7 @@ void* worker_thread(void* arg) {
 
         // Wait for a transaction if the queue is empty
         while (queue_size == 0 && !done) {
-            printf("Queue empty - Worker thread waiting\n");
+            //printf("Queue empty - Worker thread waiting\n");
             pthread_cond_wait(&queue_cond, &queue_lock);
         }
 
@@ -343,7 +310,6 @@ void* worker_thread(void* arg) {
             break;
         }
 
-
         // Fetch a transaction from the queue
         transaction txn = transaction_queue[0];
         memmove(transaction_queue, transaction_queue + 1, (queue_size - 1) * sizeof(transaction));
@@ -351,7 +317,6 @@ void* worker_thread(void* arg) {
         pthread_mutex_unlock(&queue_lock);
 
         // Process the transaction
-        printf("Processing transaction \n");
         process_transaction(&txn);
 
         // Update counters and signal the bank thread if needed
@@ -365,23 +330,6 @@ void* worker_thread(void* arg) {
         pthread_barrier_wait(&barrier);
     }
     return NULL;
-}
-
-void auditor_process(int read_fd) {
-    FILE *ledger = fopen("ledger.txt", "w");
-    if (ledger == NULL) {
-        perror("Error opening ledger file");
-        exit(EXIT_FAILURE);
-    }
-
-    char buffer[256];
-    ssize_t bytesRead;
-    while ((bytesRead = read(read_fd, buffer, sizeof(buffer) - 1)) > 0) {
-        buffer[bytesRead] = '\0'; // Null-terminate the buffer
-        fprintf(ledger, "%s", buffer); // Write to the ledger
-    }
-
-    fclose(ledger);
 }
 
 
