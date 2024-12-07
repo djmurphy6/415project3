@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "account.h"
 #include "string_parser.h"
 
@@ -42,6 +43,18 @@ void* process_transaction(void* arg) {
         info->acc->transaction_tracker += amount;
 
     } else if(tType == 'C') {
+        numCheck++;
+        if(numCheck % 500 == 0) {
+            printf("Numcheck: %d\n", numCheck);
+            pthread_mutex_lock(&pipe_lock); // Lock for thread-safe pipe access
+            time_t current_time = time(NULL);
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer),
+                    "Worker checked balance of account %s. Balance is $%.2f. Check occurred at %s",
+                    info->acc->account_number, info->acc->balance, ctime(&current_time));
+            write(pipe_fd[1], buffer, strlen(buffer)); // Use write() for pipes
+            pthread_mutex_unlock(&pipe_lock); // Unlock after writing
+        }
     }
 
     // Unlock account after processing transaction
@@ -58,6 +71,17 @@ void* update_balance(void* arg) {
         accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
         pthread_mutex_unlock(&accounts[i].ac_lock);
     }
+
+    // Write final balances to pipe
+    pthread_mutex_lock(&pipe_lock); // Lock pipe access
+    for (int i = 0; i < numAcc; i++) {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "Final balance of account %s: %.2f\n",
+                accounts[i].account_number, accounts[i].balance);
+        write(pipe_fd[1], buffer, strlen(buffer)); // Use write() for pipes
+    }
+    pthread_mutex_unlock(&pipe_lock); // Unlock pipe access
+    
     return NULL;
 }
 

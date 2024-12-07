@@ -23,10 +23,6 @@ extern int done; // flag to see if all transactions are done
 extern int transactions_processed;
 extern int total_transactions;
 
-// for audit
-extern int numCheck; // Declare the numCheck variable as an external variable
-extern pthread_mutex_t pipe_lock;
-extern int pipe_fd[2];
 
 typedef struct
 {
@@ -52,6 +48,17 @@ typedef struct
     account* target_acc;
 
 }transaction;
+
+typedef struct {
+    int counter;
+    int transactions_processed;
+    int total_transactions;
+    int done;
+    pthread_mutex_t counter_lock;
+    pthread_cond_t counter_cond;
+    pthread_cond_t bank_cond;
+    account accounts[numAcc]; // Assuming NUM_ACCOUNTS is defined
+} shared_data_t;
 
 
 void* process_transaction (void* arg);

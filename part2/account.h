@@ -7,6 +7,11 @@
 
 extern int numAcc; // Declare the numAcc variable as an external variable
 
+// for audit
+extern int numCheck; // Declare the numCheck variable as an external variable
+extern pthread_mutex_t pipe_lock;
+extern int pipe_fd[2];
+
 typedef struct
 {
 	char account_number[17];

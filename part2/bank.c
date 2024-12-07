@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "account.h"
 #include "string_parser.h"
 
@@ -19,16 +20,23 @@ int max_queue_size = INITIAL_QUEUE_SIZE;
 
 int done = 0;
 
-
-
 pthread_t thread_ids[NUM_WORKERS];
 pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
+
+// for audit
+int numCheck = 0;
+pthread_mutex_t pipe_lock;
+
+int pipe_fd[2];
+
+
 
 // Instantiate file pointer
 FILE *inFPtr;
 
 void* worker_thread(void* arg);
+void auditor_process(int read_fd);
 
 int main(int argc, char const *argv[]){
     if(argc == 2){ //checking for command line argument && (strcmp(argv[1], "f") == 0)
@@ -69,6 +77,30 @@ int main(int argc, char const *argv[]){
             fclose(inFPtr); // Close the file
             free(line_buf); // Free the line buffer
             return 1;
+        }
+
+        // check pipe
+        if(pipe(pipe_fd) == -1){
+            perror("pipe");
+            return 1;
+        }
+
+        // fork process
+        id_t pid = fork();
+        if (pid == -1) {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid == 0) {
+            // Child process (Auditor)
+            close(pipe_fd[1]); // Close the write end of the pipe
+            auditor_process(pipe_fd[0]);
+            close(pipe_fd[0]);
+            exit(EXIT_SUCCESS);
+        } else {
+            // Parent process (Duck Bank)
+            close(pipe_fd[0]); // Close the read end of the pipe
         }
         
 
@@ -221,11 +253,8 @@ int main(int argc, char const *argv[]){
         pthread_mutex_unlock(&queue_lock);
 
         for (int j = 0; j < NUM_WORKERS; ++j){
-            printf("Joining thread %d\n", j);
             pthread_join(thread_ids[j], NULL);			// wait on our threads to rejoin main thread
         }
-
-        printf("Total Transactions: %d\n", transactions);
 
         // Create a bank thread
         pthread_t bank_thread_id;
@@ -250,6 +279,7 @@ int main(int argc, char const *argv[]){
 
         // Close the summary output file
         fclose(summaryFPtr);
+
 
         //destroy mutex lock
         for (int i = 0; i < numAcc; i++) {
@@ -297,6 +327,23 @@ void* worker_thread(void* arg) {
         process_transaction(&txn);
     }
     return NULL;
+}
+
+void auditor_process(int read_fd) {
+    FILE *ledger = fopen("ledger.txt", "w");
+    if (ledger == NULL) {
+        perror("Error opening ledger file");
+        exit(EXIT_FAILURE);
+    }
+
+    char buffer[256];
+    ssize_t bytesRead;
+    while ((bytesRead = read(read_fd, buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[bytesRead] = '\0'; // Null-terminate the buffer
+        fprintf(ledger, "%s", buffer); // Write to the ledger
+    }
+
+    fclose(ledger);
 }
 
 

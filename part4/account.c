@@ -55,18 +55,6 @@ void* process_transaction(void* arg) {
         pthread_mutex_unlock(&counter_lock);
 
     } else if(tType == 'C') {
-        numCheck++;
-        if(numCheck % 500 == 0) {
-            printf("Numcheck: %d\n", numCheck);
-            pthread_mutex_lock(&pipe_lock); // Lock for thread-safe pipe access
-            time_t current_time = time(NULL);
-            char buffer[256];
-            snprintf(buffer, sizeof(buffer),
-                    "Worker checked balance of account %s. Balance is $%.2f. Check occurred at %s",
-                    info->acc->account_number, info->acc->balance, ctime(&current_time));
-            write(pipe_fd[1], buffer, strlen(buffer)); // Use write() for pipes
-            pthread_mutex_unlock(&pipe_lock); // Unlock after writing
-        }
     }
     
     if(tType != 'C') {
@@ -103,14 +91,8 @@ void* update_balance(void* arg) {
     while (1) {
         
         // Wait until enough transactions have been processed or all transactions are done
-        pthread_mutex_lock(&counter_lock);
-        while (counter < TRANSACTIONS_THRESHOLD && !done) {
+        while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= 90000)) {
             pthread_cond_wait(&bank_cond, &counter_lock);
-        }
-
-        if (done && counter == 0) {
-            pthread_mutex_unlock(&counter_lock);
-            break;
         }
 
         // Exit the loop if processing is complete
@@ -120,6 +102,11 @@ void* update_balance(void* arg) {
             break;
         }
         */
+
+        // Reset counter and allow worker threads to continue
+        transactions_processed += counter;
+        printf("Counter Reset\n");
+        counter = 0;
 
         // Perform the balance update
         for (int i = 0; i < numAcc; i++) {
@@ -145,18 +132,6 @@ void* update_balance(void* arg) {
             pthread_mutex_unlock(&counter_lock);
             break;
         }
-
-        // Write final balances to pipe
-        char buffer[256];
-        for (int i = 0; i < numAcc; i++) {
-            snprintf(buffer, sizeof(buffer), "Final balance of account %s: %.2f\n", accounts[i].account_number, accounts[i].balance);
-            write(pipe_fd[1], buffer, strlen(buffer));
-        }
-
-        // Reset counter and allow worker threads to continue
-        transactions_processed += counter;
-        printf("Counter Reset\n");
-        counter = 0;
         
     }
 
