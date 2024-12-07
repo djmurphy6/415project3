@@ -80,9 +80,7 @@ void* update_balance(void* arg) {
         
         // Wait until enough transactions have been processed or all transactions are done
         while (counter < TRANSACTIONS_THRESHOLD && !(done && transactions_processed >= 90000)) {
-            printf("Waiting\n");
             pthread_cond_wait(&bank_cond, &counter_lock);
-            printf("Out of it\n");
         }
 
         // Exit the loop if processing is complete
