@@ -43,10 +43,17 @@ pthread_cond_t bank_cond = PTHREAD_COND_INITIALIZER;
 
 pthread_barrier_t barrier;
 
+// for audit
+int numCheck = 0;
+pthread_mutex_t pipe_lock;
+
+int pipe_fd[2];
+
 // Instantiate file pointer
 FILE *inFPtr;
 
 void* worker_thread(void* arg);
+void auditor_process(int read_fd);
 
 int main(int argc, char const *argv[]){
     if(argc == 2){ //checking for command line argument && (strcmp(argv[1], "f") == 0)
@@ -87,6 +94,30 @@ int main(int argc, char const *argv[]){
             fclose(inFPtr); // Close the file
             free(line_buf); // Free the line buffer
             return 1;
+        }
+
+        // check pipe
+        if(pipe(pipe_fd) == -1){
+            perror("pipe");
+            return 1;
+        }
+
+        // fork process
+        id_t pid = fork();
+        if (pid == -1) {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid == 0) {
+            // Child process (Auditor)
+            close(pipe_fd[1]); // Close the write end of the pipe
+            auditor_process(pipe_fd[0]);
+            close(pipe_fd[0]);
+            exit(EXIT_SUCCESS);
+        } else {
+            // Parent process (Duck Bank)
+            close(pipe_fd[0]); // Close the read end of the pipe
         }
         
 
@@ -330,6 +361,23 @@ void* worker_thread(void* arg) {
         pthread_barrier_wait(&barrier);
     }
     return NULL;
+}
+
+void auditor_process(int read_fd) {
+    FILE *ledger = fopen("ledger.txt", "w");
+    if (ledger == NULL) {
+        perror("Error opening ledger file");
+        exit(EXIT_FAILURE);
+    }
+
+    char buffer[256];
+    ssize_t bytesRead;
+    while ((bytesRead = read(read_fd, buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[bytesRead] = '\0'; // Null-terminate the buffer
+        fprintf(ledger, "%s", buffer); // Write to the ledger
+    }
+
+    fclose(ledger);
 }
 
 
