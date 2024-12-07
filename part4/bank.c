@@ -14,6 +14,10 @@ int total_transactions = 0;
 int transactions_processed = 0;
 int done = 0;
 
+transaction* transaction_queue = NULL;
+int queue_size = 0;
+int max_queue_size = INITIAL_QUEUE_SIZE;
+
 pthread_t thread_ids[NUM_WORKERS];
 pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
