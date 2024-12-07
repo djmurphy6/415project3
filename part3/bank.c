@@ -331,7 +331,7 @@ void* worker_thread(void* arg) {
 
         // Wait for a transaction if the queue is empty
         while (queue_size == 0 && !done) {
-            //printf("Queue empty - Worker thread waiting\n");
+            printf("Queue empty - Worker thread waiting\n");
             pthread_cond_wait(&queue_cond, &queue_lock);
         }
 
@@ -341,6 +341,7 @@ void* worker_thread(void* arg) {
             break;
         }
 
+
         // Fetch a transaction from the queue
         transaction txn = transaction_queue[0];
         memmove(transaction_queue, transaction_queue + 1, (queue_size - 1) * sizeof(transaction));
@@ -348,6 +349,7 @@ void* worker_thread(void* arg) {
         pthread_mutex_unlock(&queue_lock);
 
         // Process the transaction
+        printf("Processing transaction \n");
         process_transaction(&txn);
 
         // Update counters and signal the bank thread if needed
