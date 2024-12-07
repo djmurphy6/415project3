@@ -45,7 +45,6 @@ void* process_transaction(void* arg) {
     } else if(tType == 'C') {
         numCheck++;
         if(numCheck % 500 == 0) {
-            printf("Numcheck: %d\n", numCheck);
             pthread_mutex_lock(&pipe_lock); // Lock for thread-safe pipe access
             time_t current_time = time(NULL);
             char buffer[256];
