@@ -271,11 +271,12 @@ int main(int argc, char const *argv[]){
             free_command_line(&large_token_buffer);
         }
         total_transactions = dCt + tCt + wCt;
-        printf("Real Total Transactions: %d\n", total_transactions);
+        
 
 
         pthread_mutex_lock(&queue_lock);
         done = 1; // Signal that no more transactions will be added
+        printf("All transactions have been added to the queue\n");
         pthread_cond_broadcast(&queue_cond); // Wake up all waiting threads
         pthread_mutex_unlock(&queue_lock);
 
@@ -283,6 +284,7 @@ int main(int argc, char const *argv[]){
         for (int j = 0; j < NUM_WORKERS; ++j){
             pthread_join(thread_ids[j], NULL);			// wait on our threads to rejoin main thread
         }
+        printf("All worker threads have joined\n");
 
         pthread_join(bank_thread_id, NULL);
 
