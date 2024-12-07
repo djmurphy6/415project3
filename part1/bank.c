@@ -171,7 +171,11 @@ int main(int argc, char const *argv[]){
         update_balance(NULL);
 
         // Open the output.txt file for writing
-        FILE *summaryFPtr = fopen("output.txt", "w");
+        // Create the Output directory if it doesn't exist
+        system("mkdir -p Output");
+
+        // Open the output.txt file for writing in the Output directory
+        FILE *summaryFPtr = fopen("Output/output.txt", "w");
         if (summaryFPtr == NULL) {
             printf("Error opening summary output file\n");
             fclose(inFPtr);

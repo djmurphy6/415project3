@@ -15,5 +15,5 @@ account.o: account.c account.h
 	
 clean:
 	rm -f core *.o bank
-	rm -f account_[0-9].txt
-	rm -f output.txt
+	rm -f Output/output.txt
+	rm -f Output/ledger.txt

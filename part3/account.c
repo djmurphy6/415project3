@@ -79,7 +79,7 @@ void* update_balance(void* arg) {
     pthread_mutex_lock(&counter_lock);
     for (int i = 0; i < 10; i++) {
         char filename[20];
-        sprintf(filename, "account_%d.txt", i);
+        sprintf(filename, "Output/account_%d.txt", i);
         FILE *file = fopen(filename, "w");
         if (file != NULL) {
             fprintf(file, "account %d:\n", i);
@@ -114,7 +114,7 @@ void* update_balance(void* arg) {
             accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
             accounts[i].transaction_tracker = 0;
             char filename[20];
-            sprintf(filename, "account_%d.txt", i);
+            sprintf(filename, "Output/account_%d.txt", i);
             FILE *file = fopen(filename, "a");
             if (file != NULL) {
                 fprintf(file, "Current Balance:\t%.2f\n", accounts[i].balance);

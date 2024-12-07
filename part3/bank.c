@@ -66,6 +66,9 @@ int main(int argc, char const *argv[]){
             return 1;
         }
 
+        // Create the Output directory if it doesn't exist
+        system("mkdir -p Output");
+
         int line_num = 0;
 
         // Read the first line to get the number of accounts

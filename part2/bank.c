@@ -263,7 +263,11 @@ int main(int argc, char const *argv[]){
         pthread_join(bank_thread_id, NULL);
 
         // Open the output.txt file for writing
-        FILE *summaryFPtr = fopen("output.txt", "w");
+        // Create the Output directory if it doesn't exist
+        system("mkdir -p Output");
+
+        // Open the output.txt file for writing in the Output directory
+        FILE *summaryFPtr = fopen("Output/output.txt", "w");
         if (summaryFPtr == NULL) {
             printf("Error opening summary output file\n");
             fclose(inFPtr);
@@ -330,7 +334,10 @@ void* worker_thread(void* arg) {
 }
 
 void auditor_process(int read_fd) {
-    FILE *ledger = fopen("ledger.txt", "w");
+    // Create the Output directory if it doesn't exist
+        system("mkdir -p Output");
+
+    FILE *ledger = fopen("Output/ledger.txt", "w");
     if (ledger == NULL) {
         perror("Error opening ledger file");
         exit(EXIT_FAILURE);
