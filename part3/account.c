@@ -76,6 +76,18 @@ void* update_balance(void* arg) {
     // Synchronize threads using the barrier
         //pthread_barrier_wait(&barrier);
     //printf("Bank thread started\n");
+    pthread_mutex_lock(&counter_lock);
+    for (int i = 0; i < 10; i++) {
+        char filename[20];
+        sprintf(filename, "account_%d.txt", i);
+        FILE *file = fopen(filename, "w");
+        if (file != NULL) {
+            fprintf(file, "account %d:\n", i);
+            fclose(file);
+        } else {
+            perror("Error opening file");
+        }
+    }
     while (1) {
         
         // Wait until enough transactions have been processed or all transactions are done
@@ -101,10 +113,20 @@ void* update_balance(void* arg) {
             pthread_mutex_lock(&accounts[i].ac_lock);
             accounts[i].balance += (accounts[i].transaction_tracker * accounts[i].reward_rate);
             accounts[i].transaction_tracker = 0;
+            char filename[20];
+            sprintf(filename, "account_%d.txt", i);
+            FILE *file = fopen(filename, "a");
+            if (file != NULL) {
+                fprintf(file, "Current Balance: %.2f\n", accounts[i].balance);
+                fclose(file);
+            } else {
+                perror("Error opening file");
+            }
             pthread_mutex_unlock(&accounts[i].ac_lock);
         }
 
         printf("Transactions_processed: %d\n", transactions_processed);
+
 
         if(transactions_processed >= 90000){
             pthread_mutex_unlock(&counter_lock);
